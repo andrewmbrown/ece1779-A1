@@ -7,7 +7,12 @@ from app.forms import LoginForm
 @app.route('/')  # decorator, modifies the function that follows it
 '''
 
+# fix this later
 @app.route('/')
+def starter():
+    return redirect('/login')
+
+# @app.route('/')
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
