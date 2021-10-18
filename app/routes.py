@@ -1,4 +1,4 @@
-from flask import render_template
+from flask import render_template, flash, redirect
 from app import app
 from app.forms import LoginForm
 
@@ -8,9 +8,14 @@ from app.forms import LoginForm
 '''
 
 @app.route('/')
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
+    if form.validate_on_submit():
+        flash('login for user {}, remember={}'. format(
+            form.user.data, form.remember.data
+        ))
+        return redirect('/index')
     return render_template('login.html', title='Login', form=form)
 
 @app.route('/index')  # use as register fxn as callbacks for certain events
