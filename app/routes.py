@@ -10,7 +10,7 @@ from app.forms import LoginForm
 # fix this later
 @app.route('/')
 def starter():
-    return redirect('/login')
+    return redirect(url_for('login'))
 
 # @app.route('/')
 @app.route('/login', methods=['GET', 'POST'])
@@ -20,7 +20,7 @@ def login():
         flash('login for user {}, remember={}'. format(
             form.user.data, form.remember.data
         ))
-        return redirect('/index')
+        return redirect(url_for('index'))
     return render_template('login.html', title='Login', form=form)
 
 @app.route('/index')  # use as register fxn as callbacks for certain events

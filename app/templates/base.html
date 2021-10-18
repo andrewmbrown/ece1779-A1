@@ -9,8 +9,8 @@
     </head>
     <body>
         <div>Image Transform: 
-          <a href="/index">Home</a>
-          <a href="/login">Login</a>
+          <a href="{{ url_for('index') }}">Home</a>
+          <a href="{{ url_for('login') }}">Login</a>
         </div>
         <hr>
         {% with msgs = get_flashed_messages() %}
