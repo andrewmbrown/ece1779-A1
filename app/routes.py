@@ -1,8 +1,18 @@
 from flask import render_template
 from app import app
+from app.forms import LoginForm
 
+'''
 # NOTE: This is all placeholder code, it will be changed
 @app.route('/')  # decorator, modifies the function that follows it
+'''
+
+@app.route('/')
+@app.route('/login')
+def login():
+    form = LoginForm()
+    return render_template('login.html', title='Login', form=form)
+
 @app.route('/index')  # use as register fxn as callbacks for certain events
 def index():
     user = {'username': 'Andrew'}

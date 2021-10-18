@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %} 
+    <h1>Login</h1>
+    <form action="" method="post" novalidate> <!-- empty action uses this URL, sends POST, lets flask validate -->
+        {{ form.hidden_tag() }} <!-- protect against CSRF -->
+        <p>
+            {{ form.user.label }}<br> <!-- field name -->
+            {{ form.user(size=64) }} <!-- field -->
+        </p>
+        <p>
+            {{ form.pwd.label }}<br>
+            {{ form.pwd(size=64) }}
+        </p>
+        <p>
+            {{ form.remember_me() }}
+            {{ form.remember_me.label }}
+        </p>
+        <p>
+            {{ form.submit() }}
+        </p>
+    </form>
+{% endblock %}
