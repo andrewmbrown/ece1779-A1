@@ -1,24 +1,29 @@
 <!doctype html>
 <html>
     <head>
-      {% if title %}
-      <title>{{ title }} - Image Transform</title>
-      {% else %}
-      <title>Welcome to Image Transform</title>
-      {% endif %}
+        {% if title %}
+        <title>{{ title }} - Image Transform</title>
+        {% else %}
+        <title>Image Transform</title>
+        {% endif %}
     </head>
     <body>
-        <div>Image Transform: 
-          <a href="{{ url_for('index') }}">Home</a>
-          <a href="{{ url_for('login') }}">Login</a>
+        <div>
+            Image Transform:
+            <a href="{{ url_for('index') }}">Home</a>
+            {% if current_user.is_anonymous %}
+            <a href="{{ url_for('login') }}">Login</a>
+            {% else %}
+            <a href="{{ url_for('logout') }}">Logout</a>
+            {% endif %}
         </div>
         <hr>
-        {% with msgs = get_flashed_messages() %}
-        {% if msgs %}
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
         <ul>
-          {% for msg in msgs %}
-          <li>{{ msg }}</li>
-          {% endfor %}
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
         </ul>
         {% endif %}
         {% endwith %}
