@@ -5,11 +5,14 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from flask_login import UserMixin
 from app import login
 
+# NOTE: anytime db classes are changed you must: 
+# either delete the migrations folder or properly migrate and upgrade database
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
-    password_hash = db.Column(db.String(128), nullable=False)
-    salt = db.Column(db.Integer, nullable=False)
+    email = db.Column(db.String(120), index=True, unique=True)
+    password_hash = db.Column(db.String(128))
     gallery = db.relationship('ImageLocation', backref='uploader', lazy='dynamic')
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -31,7 +34,9 @@ def load_user(id):
 
 class ImageLocation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    # we do not store images in DB, we instead store the path to the image
     location = db.Column(db.String(1024), index=True, unique=True)
+    # user_id is foreign key
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     def __repr__(self):
         return '<Image Path: {}>'.format(self.location)

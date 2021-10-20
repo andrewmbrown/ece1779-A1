@@ -27,7 +27,7 @@ def index():
             'body': 'Avengers is my favourite movie'
         }
     ]
-    return render_template('index.html', title='Home', user=user, posts=posts)
+    return render_template('index.html', title='Home', posts=posts)
 
 
 # @app.route('/')
