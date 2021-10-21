@@ -1,7 +1,8 @@
 from flask import render_template, flash, redirect, url_for, request
+from flask_mail import Mail, Message
 from flask_migrate import current
 from app import app, db
-from app.forms import LoginForm, RegistrationForm
+from app.forms import LoginForm, RegistrationForm, RecoveryForm
 from werkzeug.urls import url_parse
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User
@@ -16,9 +17,17 @@ from app.models import User
 
 # To ensure we always have an admin account we attempt to make it every time
 # in case there are no accounts
+# email must be setup with a gmail that has proper permissions (passwords) and for emailing using 3rd party code
 def setup():
     # function to attempt to create admin account every time the webapp is started
     # since at least one account needs administrator priveleges, it needs to exist
+    app.config['MAIL_SERVER']='smtp.gmail.com'
+    app.config['MAIL_PORT'] = 465
+    app.config['MAIL_USERNAME'] = 'email@email.com'  # set this yourself
+    app.config['MAIL_PASSWORD'] = 'my_password'  # set this yourself
+    app.config['MAIL_USE_TLS'] = False
+    app.config['MAIL_USE_SSL'] = True
+    mail = Mail(app)
     try:
         admin = User(username='root', email='root@email.com')
         admin.set_password('password')
@@ -27,10 +36,11 @@ def setup():
         print("added admin,username: root, password: password")
     except:
         print("Admin user account already exists")
+    return mail
 
 
 # fix this later
-setup()  # configure admin account
+mail = setup()  # configure admin account and setup mail
 @app.route('/')
 @app.route('/index')  # use as register fxn as callbacks for certain events
 @login_required
@@ -52,15 +62,20 @@ def index():
 # @app.route('/')
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    # no need to login if you're already authenticated
     if current_user.is_authenticated:
         return redirect(url_for('index'))
+    # form object of a login form class
     form = LoginForm()
-    if form.validate_on_submit():
+    if form.validate_on_submit():  # method of this class to validate form
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
+            # check to see validity for username, if not valid try againn
             flash('Invalid username or password')
             return redirect(url_for('login'))
+        # if valid, login the user
         login_user(user, remember=form.remember_me.data)
+        # after logging in, attempt to direct app to the next page
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('index')
@@ -70,6 +85,7 @@ def login():
 @app.route('/logout')
 def logout():
     logout_user()
+    flash("Successfully logged out")
     return redirect(url_for('index'))
 
 
@@ -79,6 +95,7 @@ def register():
     if current_user.is_authenticated:  # only see anything if logged in
         flash("Currently logged in")
     else:
+        flash("Please login, only administrators can register accounts")
         return redirect(url_for('index'))
     if int(current_user.id) == 1 or str(current_user.username) == 'root':  # first account or root name
         flash("You have admin permissions")
@@ -94,3 +111,32 @@ def register():
         flash('Congratulations, you are now a registered user!')
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
+
+
+@app.route('/recover', methods=['GET', 'POST'])
+def recover():
+    # function to reset users passwords using username and email
+    form = RecoveryForm()
+    if form.validate_on_submit():
+        try:
+            # First find the account
+            user_name = str(form.username.data)  # enter username for security theatre
+            user_email = str(form.email.data)
+            user = User.query.filter_by(email=user_email).first()
+            
+            # set new password and commit it to db
+            user.set_password(form.newpassword.data)
+            db.session.add(user)
+            db.session.commit()
+
+            flash("Successfully changed password, please login!")
+            """
+            msg = Message('Password Recovery', sender = 'andrewm.brown@mail.utoronto.ca', recipients = [user_email])
+            msg.body = f"Hello, {user_name}, here is your password recovery:"
+            mail.send(msg)
+            flash("Sent password to your email!")
+            """
+        except:
+            flash("Unable to find account, please contact administrator")
+        return redirect(url_for('index'))
+    return render_template('recover.html', title='Recover Password', form=form)

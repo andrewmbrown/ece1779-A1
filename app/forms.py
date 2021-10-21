@@ -42,3 +42,9 @@ class RegistrationForm(FlaskForm):
         users = User.query.all()
         for u in users:
             print(u.id, u.username)
+
+class RecoveryForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired()])
+    newpassword = PasswordField('New Password', validators=[DataRequired()])
+    submit = SubmitField('Reset Account')
