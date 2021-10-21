@@ -7,11 +7,30 @@ from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User
 
 '''
-# Essentially the driver code
+# This code is the driver/state of the app
+# each function defines the behaviour of a certain part of the app
+# performs logical functions then renders html display 
 @app.route('/')  # decorator, modifies the function that follows it
 '''
 
+
+# To ensure we always have an admin account we attempt to make it every time
+# in case there are no accounts
+def setup():
+    # function to attempt to create admin account every time the webapp is started
+    # since at least one account needs administrator priveleges, it needs to exist
+    try:
+        admin = User(username='root', email='root@email.com')
+        admin.set_password('password')
+        db.session.add(admin)
+        db.session.commit()
+        print("added admin,username: root, password: password")
+    except:
+        print("Admin user account already exists")
+
+
 # fix this later
+setup()  # configure admin account
 @app.route('/')
 @app.route('/index')  # use as register fxn as callbacks for certain events
 @login_required
