@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
 from app.models import User
@@ -48,3 +49,9 @@ class RecoveryForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired()])
     newpassword = PasswordField('New Password', validators=[DataRequired()])
     submit = SubmitField('Reset Account')
+
+
+class PictureForm(FlaskForm):
+    picture = FileField('Upload picture', validators=[FileRequired(), 
+                                    FileAllowed(['jpg', 'jpeg', 'png'], "You can upload only JPG, JPEG and PNG") ])
+    submit = SubmitField('Upload')

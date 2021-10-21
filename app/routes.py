@@ -1,11 +1,13 @@
+import os
 from flask import render_template, flash, redirect, url_for, request
 from flask_mail import Mail, Message
 from flask_migrate import current
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, RecoveryForm
+from app.forms import LoginForm, RegistrationForm, RecoveryForm, PictureForm
 from werkzeug.urls import url_parse
+from werkzeug.utils import secure_filename
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User
+from app.models import User, ImageLocation
 
 '''
 # This code is the driver/state of the app
@@ -28,6 +30,12 @@ def setup():
     app.config['MAIL_USE_TLS'] = False
     app.config['MAIL_USE_SSL'] = True
     mail = Mail(app)
+    """
+    msg = Message('Password Recovery', sender = 'andrewm.brown@mail.utoronto.ca', recipients = [user_email])
+    msg.body = f"Hello, {user_name}, here is your password recovery:"
+    mail.send(msg)
+    flash("Sent password to your email!")
+    """
     try:
         admin = User(username='root', email='root@email.com')
         admin.set_password('password')
@@ -130,13 +138,35 @@ def recover():
             db.session.commit()
 
             flash("Successfully changed password, please login!")
-            """
-            msg = Message('Password Recovery', sender = 'andrewm.brown@mail.utoronto.ca', recipients = [user_email])
-            msg.body = f"Hello, {user_name}, here is your password recovery:"
-            mail.send(msg)
-            flash("Sent password to your email!")
-            """
         except:
             flash("Unable to find account, please contact administrator")
         return redirect(url_for('index'))
     return render_template('recover.html', title='Recover Password', form=form)
+
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload():
+    if not current_user.is_authenticated:
+        flash('Please login to upload images', category='danger')
+        return redirect(url_for('login'))
+    form = PictureForm()
+    title = 'Upload Image'
+
+    if form.validate_on_submit():
+        if form.picture.data:
+            # Uploading images depends on the machine
+            filename = secure_filename(form.picture.data.filename)
+            username = str(current_user.username)
+            picture_path = f"./static/user_images/{username}/{filename}"
+
+            # unsure of this
+            user_email = current_user.email
+            user = User.query.filter_by(email=user_email).first()
+            pic_path = ImageLocation(location=picture_path, uploader=user)
+
+            # add picture path to the database
+            db.session.add(pic_path)
+            db.session.commit()
+            # save the image file itself on the local machine
+            form.picture.data.save(picture_path)
+    return render_template('upload.html', title=title, form=form)
