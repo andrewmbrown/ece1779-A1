@@ -5,6 +5,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from flask_login import UserMixin
 from app import login
 
+# File that specifies the database tables and behaviour
+# Each class is a table, with some logic implemented to ensure proper usage
 # NOTE: anytime db classes are changed you must: 
 # either delete the migrations folder or properly migrate and upgrade database
 

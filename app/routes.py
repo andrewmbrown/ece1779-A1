@@ -7,7 +7,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User
 
 '''
-# NOTE: This is all placeholder code, it will be changed
+# Essentially the driver code
 @app.route('/')  # decorator, modifies the function that follows it
 '''
 
@@ -57,7 +57,14 @@ def logout():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if current_user.is_authenticated:
+    if current_user.is_authenticated:  # only see anything if logged in
+        flash("Currently logged in")
+    else:
+        return redirect(url_for('index'))
+    if int(current_user.id) == 1:  # admin is the first account, id is 1
+        flash("You have admin permissions")
+    else:
+        flash("Sorry, only administrators can register accounts")
         return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
