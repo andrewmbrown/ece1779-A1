@@ -80,7 +80,7 @@ def register():
         flash("Currently logged in")
     else:
         return redirect(url_for('index'))
-    if int(current_user.id) == 1:  # admin is the first account, id is 1
+    if int(current_user.id) == 1 or str(current_user.username) == 'root':  # first account or root name
         flash("You have admin permissions")
     else:
         flash("Sorry, only administrators can register accounts")
