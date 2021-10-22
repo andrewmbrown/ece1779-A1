@@ -1,4 +1,5 @@
 import os
+import time
 from flask import render_template, flash, redirect, url_for, request
 from flask_mail import Mail, Message
 from flask_migrate import current
@@ -8,6 +9,8 @@ from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, ImageLocation
+from wand.image import Image
+from app.imagetransform import image_transform
 
 '''
 # This code is the driver/state of the app
@@ -156,21 +159,51 @@ def upload():
         if form.picture.data:
             # Uploading images depends on the machine
             filename = secure_filename(form.picture.data.filename)
+            img_folder_name = str(filename+str(int(time.time())))
             username = str(current_user.username)
             cwd = os.getcwd()
             user_image_path = os.path.join(cwd, 'static', 'user_images', username)
             if not os.path.exists(user_image_path):
                 os.mkdir(user_image_path)
-            picture_path = os.path.join(cwd, 'static', 'user_images', username, filename)
+            picture_path = os.path.join(cwd, 'static', 'user_images', username, img_folder_name)
+
+            path_dict = {
+                'rootdir': picture_path,
+                'normal': os.path.join(picture_path, 'normal'),
+                'thumbnail': os.path.join(picture_path, 'thumbnail'),
+                'blur': os.path.join(picture_path, 'blur'),
+                'shade': os.path.join(picture_path, 'shade'),
+                'spread': os.path.join(picture_path, 'spread')
+            }
 
             # unsure of this
             user_email = current_user.email
             user = User.query.filter_by(email=user_email).first()
             pic_path = ImageLocation(location=picture_path, uploader=user)
 
+
             # add picture path to the database
             db.session.add(pic_path)
             db.session.commit()
+
             # save the image file itself on the local machine
-            form.picture.data.save(picture_path)
+            os.mkdir(picture_path)
+            os.mkdir(path_dict['normal'])
+            os.mkdir(path_dict['thumbnail'])
+            os.mkdir(path_dict['blur'])
+            os.mkdir(path_dict['shade'])
+            os.mkdir(path_dict['spread'])
+
+            main_path = os.path.join(path_dict['normal'], filename)
+            thumbnail_path = os.path.join(path_dict['thumbnail'], filename)
+            blur_path = os.path.join(path_dict['blur'], filename)
+            shade_path = os.path.join(path_dict['shade'], filename)
+            spread_path = os.path.join(path_dict['spread'], filename)
+
+            form.picture.data.save(main_path)
+            blur_test = image_transform(main_path, blur_path, 0) # add errors if didn't work
+            shade_test = image_transform(main_path, shade_path, 1)
+            spread_test = image_transform(main_path, spread_path, 2)
+            thumbnail_test = image_transform(main_path, thumbnail_path, 3)
+
     return render_template('upload.html', title=title, form=form)
