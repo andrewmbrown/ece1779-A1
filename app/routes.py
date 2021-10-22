@@ -207,3 +207,5 @@ def upload():
             thumbnail_test = image_transform(main_path, thumbnail_path, 3)
 
     return render_template('upload.html', title=title, form=form)
+
+# gallery will go here 
