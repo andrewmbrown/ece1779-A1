@@ -209,3 +209,10 @@ def upload():
     return render_template('upload.html', title=title, form=form)
 
 # gallery will go here 
+@app.route('/gallery', methods=['GET'])
+def gallery():
+    if not current_user.is_authenticated:
+        flash('Please login to view your gallery', category='danger')
+        return redirect(url_for('login'))
+    title = "{}'s Image Gallery".format(str(current_user.username))
+    return render_template('gallery.html', title=title)
