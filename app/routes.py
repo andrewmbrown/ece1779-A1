@@ -157,7 +157,11 @@ def upload():
             # Uploading images depends on the machine
             filename = secure_filename(form.picture.data.filename)
             username = str(current_user.username)
-            picture_path = f"./static/user_images/{username}/{filename}"
+            cwd = os.getcwd()
+            user_image_path = os.path.join(cwd, 'static', 'user_images', username)
+            if not os.path.exists(user_image_path):
+                os.mkdir(user_image_path)
+            picture_path = os.path.join(cwd, 'static', 'user_images', username, filename)
 
             # unsure of this
             user_email = current_user.email

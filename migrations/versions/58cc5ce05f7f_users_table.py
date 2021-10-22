@@ -1,8 +1,8 @@
-"""User ImageLocation
+"""users table
 
-Revision ID: 15766e6f6f5b
+Revision ID: 58cc5ce05f7f
 Revises: 
-Create Date: 2021-10-19 22:38:47.930633
+Create Date: 2021-10-21 20:07:06.317365
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '15766e6f6f5b'
+revision = '58cc5ce05f7f'
 down_revision = None
 branch_labels = None
 depends_on = None

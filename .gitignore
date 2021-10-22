@@ -48,3 +48,6 @@ nosetests.xml
 venv
 app.db
 microblog.log*
+
+*.jpg
+*.png
