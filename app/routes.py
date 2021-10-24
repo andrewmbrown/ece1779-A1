@@ -163,10 +163,10 @@ def upload():
             img_folder_name = str(filename_without_extension+str(int(time.time())))
             username = str(current_user.username)
             cwd = os.getcwd()
-            user_image_path = os.path.join(cwd, 'app', 'static', 'images', username)
+            user_image_path = os.path.join(cwd, 'app', 'static', 'images', username) # USER GALLERY FOLDER
             if not os.path.exists(user_image_path):
                 os.mkdir(user_image_path)
-            picture_path = os.path.join(cwd, 'app', 'static', 'images', username, img_folder_name)
+            picture_path = os.path.join(cwd, 'app', 'static', 'images', username, img_folder_name) # FOLDER for SINGLE IMAGE
             html_path = os.path.join('static', 'images', username, img_folder_name)
 
             path_dict = {
@@ -241,15 +241,6 @@ def uploadurl():
                 flash("Error in downloading image from URL. Please try another.", category='danger')
                 return redirect(url_for('uploadurl'))
             
-            '''
-            try:
-                urllib.request.urlretrieve(str(form.urlpicture.data), filename) # temp saved locally
-            except urllib.error.URLError as e:
-                print("URL ERROR:")
-                print(e.readlines())
-                flash("URLError: Likely the SSL certificate verification for the image failed. Please try another image.", category='danger')
-                return redirect(url_for('upload'))
-            '''
 
             # filename = secure_filename(form.picture.data.filename)
             # filename_without_extension = (filename.split('.'))[0]
