@@ -50,4 +50,5 @@ app.db
 microblog.log*
 
 *.jpg
+*.jpeg
 *.png

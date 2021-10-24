@@ -15,7 +15,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
-    gallery = db.relationship('ImageLocation', backref='uploader', lazy='dynamic')
+    # gallery = db.relationship('ImageLocation', backref='uploader', lazy='dynamic')
     def __repr__(self):
         return '<User {}>'.format(self.username)
     
@@ -38,7 +38,9 @@ class ImageLocation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     # we do not store images in DB, we instead store the path to the image
     location = db.Column(db.String(2048), index=True)
+    htmlpath = db.Column(db.String(2048), index=True)
+    filename = db.Column(db.String(2048), index=True)
     # user_id is foreign key
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer)
     def __repr__(self):
         return '<Image Path: {}>'.format(self.location)

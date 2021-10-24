@@ -159,13 +159,15 @@ def upload():
         if form.picture.data:
             # Uploading images depends on the machine
             filename = secure_filename(form.picture.data.filename)
-            img_folder_name = str(filename+str(int(time.time())))
+            filename_without_extension = (filename.split('.'))[0]
+            img_folder_name = str(filename_without_extension+str(int(time.time())))
             username = str(current_user.username)
             cwd = os.getcwd()
             user_image_path = os.path.join(cwd, 'static', 'user_images', username)
             if not os.path.exists(user_image_path):
                 os.mkdir(user_image_path)
             picture_path = os.path.join(cwd, 'static', 'user_images', username, img_folder_name)
+            html_path = os.path.join('..', '..', 'static', 'user_images', username, img_folder_name)
 
             path_dict = {
                 'rootdir': picture_path,
@@ -177,14 +179,9 @@ def upload():
             }
 
             # unsure of this
-            user_email = current_user.email
-            user = User.query.filter_by(email=user_email).first()
-            pic_path = ImageLocation(location=picture_path, uploader=user)
-
-
-            # add picture path to the database
-            db.session.add(pic_path)
-            db.session.commit()
+            # user_email = current_user.email
+            # user = User.query.filter_by(email=user_email).first()
+            pic_path = ImageLocation(location=picture_path, htmlpath=html_path, filename=filename, user_id=current_user.id)
 
             # save the image file itself on the local machine
             os.mkdir(picture_path)
@@ -206,6 +203,10 @@ def upload():
             spread_test = image_transform(main_path, spread_path, 2)
             thumbnail_test = image_transform(main_path, thumbnail_path, 3)
 
+            # add picture path to the database
+            db.session.add(pic_path)
+            db.session.commit()
+
     return render_template('upload.html', title=title, form=form)
 
 # gallery will go here 
@@ -215,4 +216,13 @@ def gallery():
         flash('Please login to view your gallery', category='danger')
         return redirect(url_for('login'))
     title = "{}'s Image Gallery".format(str(current_user.username))
-    return render_template('gallery.html', title=title)
+    image_path_rows = ImageLocation.query.filter_by(user_id=current_user.id).all()
+    image_paths = [{
+        'root': str(img.htmlpath),
+        'thumbnail': os.path.join(str(img.htmlpath), 'thumbnail', str(img.filename)),
+        'normal': os.path.join(str(img.htmlpath), 'normal', str(img.filename)),
+        'blur': os.path.join(str(img.htmlpath), 'blur', str(img.filename)),
+        'shade': os.path.join(str(img.htmlpath), 'shade', str(img.filename)),
+        'spread': os.path.join(str(img.htmlpath), 'spread', str(img.filename))} for img in image_path_rows]
+    # flash(str(image_paths))
+    return render_template('gallery.html', title=title, image_paths=image_paths)

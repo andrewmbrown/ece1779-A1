@@ -2,4 +2,7 @@
 {% block content %}
     <h1>Gallery</h1>
     <p>This will be where your gallery will be located.</p>
+    {% for img in image_paths %}
+    <div><img src="{{ img.thumbnail }}" width=50 height=50></div>
+    {% endfor %}
 {% endblock content %}
