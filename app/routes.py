@@ -163,11 +163,11 @@ def upload():
             img_folder_name = str(filename_without_extension+str(int(time.time())))
             username = str(current_user.username)
             cwd = os.getcwd()
-            user_image_path = os.path.join(cwd, 'static', 'user_images', username)
+            user_image_path = os.path.join(cwd, 'app', 'static', 'images', username)
             if not os.path.exists(user_image_path):
                 os.mkdir(user_image_path)
-            picture_path = os.path.join(cwd, 'static', 'user_images', username, img_folder_name)
-            html_path = os.path.join('..', '..', 'static', 'user_images', username, img_folder_name)
+            picture_path = os.path.join(cwd, 'app', 'static', 'images', username, img_folder_name)
+            html_path = os.path.join('static', 'images', username, img_folder_name)
 
             path_dict = {
                 'rootdir': picture_path,
@@ -224,5 +224,6 @@ def gallery():
         'blur': os.path.join(str(img.htmlpath), 'blur', str(img.filename)),
         'shade': os.path.join(str(img.htmlpath), 'shade', str(img.filename)),
         'spread': os.path.join(str(img.htmlpath), 'spread', str(img.filename))} for img in image_path_rows]
+    # image_paths = [{'thumbnail': "/static/images/sample.jpg"}, {'thumbnail': "/static/images/testimg.png"}]
     # flash(str(image_paths))
     return render_template('gallery.html', title=title, image_paths=image_paths)
