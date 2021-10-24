@@ -57,17 +57,13 @@ mail = setup()  # configure admin account and setup mail
 @login_required
 def index():
     # render_template() invokes jinja2 substituting {{...}} blocks with corresponding values
-    posts = [
+    admin_info = [
         {
-            'author': {'username': 'John'},
-            'body': 'Beautiful day in Toronto!'
-        },
-        {
-            'author': {'username': 'Mickey'},
-            'body': 'Avengers is my favourite movie'
+            'author': {'username': 'the admin (root)'},
+            'body': 'Please click on Upload to upload and image, and Gallery to see your current images!'
         }
     ]
-    return render_template('index.html', title='Home', posts=posts)
+    return render_template('index.html', title='Home', adminmsgs=admin_info)
 
 
 # @app.route('/')
@@ -217,7 +213,11 @@ def gallery():
         return redirect(url_for('login'))
     title = "{}'s Image Gallery".format(str(current_user.username))
     image_path_rows = ImageLocation.query.filter_by(user_id=current_user.id).all()
+    # url_friendly_filename = str(img.filename).replace(".", "_")
     image_paths = [{
+        'filename': str(img.filename),
+        'filename_url': str(str(img.filename).replace(".", "$")),
+        'dirname': str(os.path.basename(os.path.normpath(str(img.htmlpath)))),
         'root': str(img.htmlpath),
         'thumbnail': os.path.join(str(img.htmlpath), 'thumbnail', str(img.filename)),
         'normal': os.path.join(str(img.htmlpath), 'normal', str(img.filename)),
@@ -227,3 +227,19 @@ def gallery():
     # image_paths = [{'thumbnail': "/static/images/sample.jpg"}, {'thumbnail': "/static/images/testimg.png"}]
     # flash(str(image_paths))
     return render_template('gallery.html', title=title, image_paths=image_paths)
+
+@app.route('/image/<imagefolder>/<imgname>', methods=['GET'])
+def image(imagefolder, imgname):
+    if not current_user.is_authenticated:
+        flash('Please login to view your gallery', category='danger')
+        return redirect(url_for('login'))
+    username = str(current_user.username)
+    html_path = str(os.path.join('images', username, imagefolder))
+    filename = str(imgname).replace("$", ".")
+    path_components = {
+        'username': username,
+        'dirname': imagefolder,
+        'filename': filename
+    }
+    return render_template('image.html', title=imagefolder, pathcomp=path_components)
+    # return render_template('image.html', title=imgname, norm=normurl, blur=blururl, shade=shadeurl, spread=spreadurl)
