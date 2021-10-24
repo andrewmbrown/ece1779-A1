@@ -22,9 +22,11 @@ def image_transform(img_path, post_transform_path, mode):
         return -1
 
     # in case image transformation does not work, throw exeception
+
     try:
         img.save(filename=post_transform_path)
         return out
     except:
         print("image transform failed!")
         return -1
+ 

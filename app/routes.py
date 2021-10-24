@@ -1,16 +1,20 @@
 import os
 import time
+import requests
+import urllib.request
+import shutil
 from flask import render_template, flash, redirect, url_for, request
 from flask_mail import Mail, Message
 from flask_migrate import current
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, RecoveryForm, PictureForm
+from app.forms import LoginForm, RegistrationForm, RecoveryForm, PictureForm, URLPictureForm
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, ImageLocation
 from wand.image import Image
 from app.imagetransform import image_transform
+from app.apputilities import extension_dict, check_img_url
 
 '''
 # This code is the driver/state of the app
@@ -204,6 +208,110 @@ def upload():
             db.session.commit()
 
     return render_template('upload.html', title=title, form=form)
+
+@app.route('/uploadurl', methods=['GET', 'POST'])
+def uploadurl():
+    if not current_user.is_authenticated:
+        flash('Please login to upload images', category='danger')
+        return redirect(url_for('login'))
+    form = URLPictureForm()
+    title = 'Upload Image via URL'
+
+    if form.validate_on_submit():
+        if form.urlpicture.data:
+            # Uploading images depends on the machine
+
+            # download locally temporarily
+            viable_img = check_img_url(str(form.urlpicture.data))
+            viable_img_truth = viable_img[0]
+            if not viable_img_truth:
+                flash('Image URL was improperly entered or not a viable image URL, please try another upload', category='danger')
+                return redirect(url_for('uploadurl'))
+
+            processed_filename = secure_filename(str(form.urlpicture.data)).replace(".", "_").lower()
+            filename_ext = extension_dict[viable_img[1]] # png, jpg, or jpeg 
+            filename_without_extension = str(processed_filename[-32:]) # just use the last 256 chars of it 
+            filename = filename_without_extension + str(filename_ext)
+
+            try: 
+                img_data = requests.get(str(form.urlpicture.data)).content
+                with open(filename, 'wb') as handler:
+                    handler.write(img_data)
+            except:
+                flash("Error in downloading image from URL. Please try another.", category='danger')
+                return redirect(url_for('uploadurl'))
+            
+            '''
+            try:
+                urllib.request.urlretrieve(str(form.urlpicture.data), filename) # temp saved locally
+            except urllib.error.URLError as e:
+                print("URL ERROR:")
+                print(e.readlines())
+                flash("URLError: Likely the SSL certificate verification for the image failed. Please try another image.", category='danger')
+                return redirect(url_for('upload'))
+            '''
+
+            # filename = secure_filename(form.picture.data.filename)
+            # filename_without_extension = (filename.split('.'))[0]
+            img_folder_name = str(filename_without_extension+str(int(time.time())))
+            username = str(current_user.username)
+            cwd = os.getcwd()
+            user_image_path = os.path.join(cwd, 'app', 'static', 'images', username)
+            if not os.path.exists(user_image_path):
+                os.mkdir(user_image_path)
+            picture_path = os.path.join(cwd, 'app', 'static', 'images', username, img_folder_name)
+            html_path = os.path.join('static', 'images', username, img_folder_name)
+
+            path_dict = {
+                'rootdir': picture_path,
+                'normal': os.path.join(picture_path, 'normal'),
+                'thumbnail': os.path.join(picture_path, 'thumbnail'),
+                'blur': os.path.join(picture_path, 'blur'),
+                'shade': os.path.join(picture_path, 'shade'),
+                'spread': os.path.join(picture_path, 'spread')
+            }
+
+            # unsure of this
+            # user_email = current_user.email
+            # user = User.query.filter_by(email=user_email).first()
+            pic_path = ImageLocation(location=picture_path, htmlpath=html_path, filename=filename, user_id=current_user.id)
+
+            # save the image file itself on the local machine
+            os.mkdir(picture_path)
+            os.mkdir(path_dict['normal'])
+            os.mkdir(path_dict['thumbnail'])
+            os.mkdir(path_dict['blur'])
+            os.mkdir(path_dict['shade'])
+            os.mkdir(path_dict['spread'])
+
+            # form.picture.data.save(main_path)
+            shutil.copy(filename, path_dict['normal'])
+
+            main_path = os.path.join(path_dict['normal'], filename)
+            thumbnail_path = os.path.join(path_dict['thumbnail'], filename)
+            blur_path = os.path.join(path_dict['blur'], filename)
+            shade_path = os.path.join(path_dict['shade'], filename)
+            spread_path = os.path.join(path_dict['spread'], filename)
+
+            blur_test = image_transform(main_path, blur_path, 0) # add errors if didn't work
+            shade_test = image_transform(main_path, shade_path, 1)
+            spread_test = image_transform(main_path, spread_path, 2)
+            thumbnail_test = image_transform(main_path, thumbnail_path, 3)
+
+            if blur_test < 0 or shade_test < 0 or spread_test < 0 or thumbnail_test < 0:
+                flash('Image could not be transformed! Please try again or another', category='danger')
+                return redirect(url_for('uploadurl'))
+
+            # add picture path to the database
+            db.session.add(pic_path)
+            db.session.commit()
+
+            # remove the temp file
+            os.remove(filename)
+
+            flash('Upload successful.')
+
+    return render_template('uploadurl.html', title=title, form=form)
 
 # gallery will go here 
 @app.route('/gallery', methods=['GET'])

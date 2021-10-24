@@ -1,8 +1,8 @@
 """redo
 
-Revision ID: f39206cf4c78
+Revision ID: e2b86a70cec5
 Revises: 
-Create Date: 2021-10-24 12:20:33.640448
+Create Date: 2021-10-24 16:43:18.772743
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'f39206cf4c78'
+revision = 'e2b86a70cec5'
 down_revision = None
 branch_labels = None
 depends_on = None

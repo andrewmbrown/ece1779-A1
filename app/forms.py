@@ -3,6 +3,7 @@ from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
 from app.models import User
+from app.apputilities import *
 
 """
 File to create different types of form fillers for the web application
@@ -55,3 +56,17 @@ class PictureForm(FlaskForm):
     picture = FileField('Upload picture', validators=[FileRequired(), 
                                     FileAllowed(['jpg', 'jpeg', 'png'], "You can upload only JPG, JPEG and PNG") ])
     submit = SubmitField('Upload')
+
+class URLPictureForm(FlaskForm):
+    urlpicture = StringField('URL to Upload Picture', validators=[DataRequired()])
+    submit = SubmitField('Upload')
+
+    def validate_urlpicture(self, urlpicture):
+        new_url = urlpicture.data
+        if urlpicture.data[:8] != "https://" and urlpicture.data[:7] != "http://":
+            new_url = "https://" + urlpicture.data 
+        viable_image = check_img_url(new_url)
+        viable_image_truth = viable_image[0]
+        if not viable_image_truth:
+            raise ValidationError("The image URL you entered was not viable: either it has a typo, is not a png, jpg, or jpeg, is not accessible for security reasons, or is not registered as one of these image types in its file header. Please try another URL.")
+        
