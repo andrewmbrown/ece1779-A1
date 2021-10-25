@@ -3,6 +3,7 @@ import time
 import requests
 import urllib.request
 import shutil
+import json
 from flask import render_template, flash, redirect, url_for, request
 from flask_mail import Mail, Message
 from flask_migrate import current
@@ -54,7 +55,6 @@ def setup():
         print("Admin user account already exists")
     return mail
 
-
 # fix this later
 mail = setup()  # configure admin account and setup mail
 @app.route('/')
@@ -69,7 +69,6 @@ def index():
         }
     ]
     return render_template('index.html', title='Home', adminmsgs=admin_info)
-
 
 # @app.route('/')
 @app.route('/login', methods=['GET', 'POST'])
@@ -99,8 +98,6 @@ def logout():
     logout_user()
     flash("Successfully logged out")
     return redirect(url_for('index'))
-
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -322,7 +319,6 @@ def too_large(e):
     flash("File is too large! Please only upload images below 10MB in filesize")
     return redirect(url_for('upload'))
 
-
 # gallery will go here 
 @app.route('/gallery', methods=['GET'])
 def gallery():
@@ -361,3 +357,140 @@ def image(imagefolder, imgname):
     }
     return render_template('image.html', title=imagefolder, pathcomp=path_components)
     # return render_template('image.html', title=imgname, norm=normurl, blur=blururl, shade=shadeurl, spread=spreadurl)
+
+# Automatic testing points
+@app.route('/api/register', methods=['POST'])
+def register_test():
+    # define json success and error codes
+    msg_failure = {
+        'success': False,
+        'error': 
+            {'code': 400, 'message': 'Unsuccessful registering'}
+    }
+    msg_success = {'success': True}
+
+    try:
+        if request.method == 'POST':
+            username = request.form['username']
+            password = request.form['password']
+            email = 'default@gmail.com'  # a sample placeholder
+        else:
+            msg_failure['error']['message'] = 'Request method was specified incorrectly'
+            return json.dumps(msg_failure)
+        try:
+            user = User(username=username, email=email)
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+        except:
+            msg_failure['error']['message'] = 'request data does not conform to proper specifications'
+            return json.dumps(msg_failure)
+    except:
+        msg_failure['error']['message'] = 'Not a POST request or not able to parse data'
+        return json.dumps(msg_failure)
+    # end of function if all is successful
+    return json.dumps(msg_success)
+
+@app.route('/api/upload', methods=['POST'])
+def upload_test():
+    sample_size = None
+    # define json success and error codes
+    msg_failure = {
+        'success': False,
+        'error': 
+            {'code': 400,
+             'message': 'Unsuccessful registering'}
+    }
+    msg_success = {
+        'success': True,
+        'payload': 
+            {'original_size': sample_size, 
+            'blur_size': sample_size,
+            'shade_size': sample_size,
+            'spread_size': sample_size}
+    }
+    try:
+        if request.method == 'POST':
+            # login with this info
+            username = request.form['username']
+            password = request.form['password']
+        else:
+            msg_failure['error']['message'] = 'Request method was specified incorrectly, unable to parse'
+            return json.dumps(msg_failure)
+        try: # login and upload
+            user = User.query.filter_by(username=username).first()  # query for the username
+            if user is None or not user.check_password(password): # check user with password validity
+                msg_failure['error']['message'] = 'invalid username or password'
+                return json.dumps(msg_failure)
+            # now we can login user
+            login_user(user)
+            
+            # get file from form filler
+            file = request.files['file']
+            if not file:
+                msg_failure['error']['message'] = 'file is invalid'
+                return json.dumps(msg_failure)
+            filename = secure_filename(file.filename)
+            filename_without_extension = (filename.split('.'))[0]
+            img_folder_name = str(filename_without_extension+str(int(time.time())))
+            username = str(current_user.username)
+            cwd = os.getcwd()
+            user_image_path = os.path.join(cwd, 'app', 'static', 'images', username) # USER GALLERY FOLDER
+            if not os.path.exists(user_image_path):
+                os.mkdir(user_image_path)
+            picture_path = os.path.join(cwd, 'app', 'static', 'images', username, img_folder_name) # FOLDER for SINGLE IMAGE
+            html_path = os.path.join('static', 'images', username, img_folder_name)
+
+            path_dict = {
+                'rootdir': picture_path,
+                'normal': os.path.join(picture_path, 'normal'),
+                'thumbnail': os.path.join(picture_path, 'thumbnail'),
+                'blur': os.path.join(picture_path, 'blur'),
+                'shade': os.path.join(picture_path, 'shade'),
+                'spread': os.path.join(picture_path, 'spread')
+            }
+
+            pic_path = ImageLocation(location=picture_path, htmlpath=html_path, filename=filename, user_id=current_user.id)
+
+            # save the image file itself on the local machine
+            os.mkdir(picture_path)
+            os.mkdir(path_dict['normal'])
+            os.mkdir(path_dict['thumbnail'])
+            os.mkdir(path_dict['blur'])
+            os.mkdir(path_dict['shade'])
+            os.mkdir(path_dict['spread'])
+
+            main_path = os.path.join(path_dict['normal'], filename)
+            thumbnail_path = os.path.join(path_dict['thumbnail'], filename)
+            blur_path = os.path.join(path_dict['blur'], filename)
+            shade_path = os.path.join(path_dict['shade'], filename)
+            spread_path = os.path.join(path_dict['spread'], filename)
+
+            # requests library gives different format of file, so it becomes file.save not file.data.save
+            file.save(main_path)
+            blur_test = image_transform(main_path, blur_path, 0) # add errors if didn't work
+            shade_test = image_transform(main_path, shade_path, 1)
+            spread_test = image_transform(main_path, spread_path, 2)
+            thumbnail_test = image_transform(main_path, thumbnail_path, 3)
+
+            if blur_test < 0 or shade_test < 0 or spread_test < 0 or thumbnail_test < 0:
+                msg_failure['error']['message'] = 'Image could not be transformed! Please try again or another'
+                return json.dumps(msg_failure)
+            else:
+                # prepare success message with payload sizes
+                msg_success['payload']['original_size'] = os.path.getsize(main_path)
+                msg_success['payload']['blur_size'] = os.path.getsize(blur_path)
+                msg_success['payload']['shade_size'] = os.path.getsize(shade_path)
+                msg_success['payload']['spread_size'] = os.path.getsize(spread_path)
+            # add picture path to the database
+            db.session.add(pic_path)
+            db.session.commit()
+        except:
+            msg_failure['error']['message'] = 'unable to upload file'
+            return json.dumps(msg_failure)
+    except:
+        msg_failure['error']['message'] = 'Not a POST request or not able to parse data'
+        return json.dumps(msg_failure)
+
+    # end of function if all is successful
+    return json.dumps(msg_success)
