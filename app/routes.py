@@ -33,24 +33,18 @@ def setup():
     # since at least one account needs administrator priveleges, it needs to exist
     app.config['MAIL_SERVER']='smtp.gmail.com'
     app.config['MAIL_PORT'] = 465
-    app.config['MAIL_USERNAME'] = 'email@email.com'  # set this yourself
-    app.config['MAIL_PASSWORD'] = 'my_password'  # set this yourself
+    app.config['MAIL_USERNAME'] = ''  # set this yourself, needs to be a gmail with permissions
+    app.config['MAIL_PASSWORD'] = ''  # set this yourself
     app.config['MAIL_USE_TLS'] = False
     app.config['MAIL_USE_SSL'] = True
     app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # <10MB server side validation
     mail = Mail(app)
-    """
-    msg = Message('Password Recovery', sender = 'andrewm.brown@mail.utoronto.ca', recipients = [user_email])
-    msg.body = f"Hello, {user_name}, here is your password recovery:"
-    mail.send(msg)
-    flash("Sent password to your email!")
-    """
     try:
         admin = User(username='root', email='root@email.com')
         admin.set_password('password')
         db.session.add(admin)
         db.session.commit()
-        print("added admin,username: root, password: password")
+        print("added admin, username: root, password: password")
     except:
         print("Admin user account already exists")
     return mail
@@ -117,6 +111,15 @@ def register():
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
+
+        # as a form of password recovery, send email containing it
+        try:
+            msg = Message('Account Details', sender = 'andrewm.brown@mail.utoronto.ca', recipients = [form.email.data])
+            msg.body = f"Hello, {form.username.data}, here is your password in case you lose it: {form.password.data} You can also reset this password via the application"
+            mail.send(msg)
+            flash("Sent account details (username, passsword) to your email!")
+        except:
+            flash("Unable to send account details to email to your email!")
         flash('Congratulations, you are now a registered user!')
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
@@ -314,11 +317,6 @@ def uploadurl():
     return render_template('uploadurl.html', title=title, form=form)
 
 
-@app.errorhandler(413)
-def too_large(e):
-    flash("File is too large! Please only upload images below 10MB in filesize")
-    return redirect(url_for('upload'))
-
 # gallery will go here 
 @app.route('/gallery', methods=['GET'])
 def gallery():
@@ -494,3 +492,17 @@ def upload_test():
 
     # end of function if all is successful
     return json.dumps(msg_success)
+
+@app.errorhandler(413)
+def too_large(e):
+    flash("File is too large! Please only upload images below 10MB in filesize")
+    return redirect(url_for('upload'))
+
+@app.errorhandler(404)
+def not_found_error(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(e):
+    db.session.rollback()
+    return render_template('500.html'), 500
