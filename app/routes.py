@@ -36,6 +36,7 @@ def setup():
     app.config['MAIL_PASSWORD'] = 'my_password'  # set this yourself
     app.config['MAIL_USE_TLS'] = False
     app.config['MAIL_USE_SSL'] = True
+    app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # <10MB server side validation
     mail = Mail(app)
     """
     msg = Message('Password Recovery', sender = 'andrewm.brown@mail.utoronto.ca', recipients = [user_email])
@@ -221,7 +222,18 @@ def uploadurl():
         if form.urlpicture.data:
             # Uploading images depends on the machine
 
-            # download locally temporarily
+            # check file size from URL by checking the header using request library
+            # header settings give full uncompressed fizesize
+            try:
+                r = requests.head(str(form.urlpicture.data),headers={'Accept-Encoding': 'identity'})
+                size = int(r.headers['content-length'])
+            except:
+                flash('Image URL was improperly entered or not a viable image URL, please try another upload', category='danger')
+                return redirect(url_for('uploadurl'))
+            if size > 10000000:  # larger than 10MB
+                flash("File is too large! Please only upload images below 10MB in filesize")
+                return redirect(url_for('uploadurl'))
+
             viable_img = check_img_url(str(form.urlpicture.data))
             viable_img_truth = viable_img[0]
             if not viable_img_truth:
@@ -303,6 +315,13 @@ def uploadurl():
             flash('Upload successful.')
 
     return render_template('uploadurl.html', title=title, form=form)
+
+
+@app.errorhandler(413)
+def too_large(e):
+    flash("File is too large! Please only upload images below 10MB in filesize")
+    return redirect(url_for('upload'))
+
 
 # gallery will go here 
 @app.route('/gallery', methods=['GET'])
