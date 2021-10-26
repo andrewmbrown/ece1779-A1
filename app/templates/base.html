@@ -1,38 +1,46 @@
-<!doctype html>
-<html>
-    <head>
-        {% if title %}
-        <title>{{ title }} - Image Transform</title>
-        {% else %}
-        <title>Image Transform</title>
-        {% endif %}
-    </head>
-    <body>
-        <div>
-            Image Transform:
-            <a href="{{ url_for('index') }}">Home</a>
-            {% if current_user.is_anonymous %}
-            <a href="{{ url_for('login') }}">Login</a>
-            <a href="{{ url_for('recover') }}">Recover Password</a>
-            {% else %}
-            <a href="{{ url_for('logout') }}">Logout</a>
-            <a href="{{ url_for('recover') }}">Change Password</a>
-            {% endif %}
-            <a href="{{ url_for('register') }}">Register</a>
-            <a href="{{ url_for('upload') }}">Upload from Files</a>
-            <a href="{{ url_for('uploadurl') }}">Upload from URL</a>
-            <a href="{{ url_for('gallery') }}">Gallery</a>
+{% extends 'bootstrap/base.html' %}
+
+{% block title %}
+    {% if title %}{{ title }} - Image Transform{% else %}Image Transform{% endif %}
+{% endblock %}
+
+{% block navbar %}
+    <nav class="navbar navbar-default">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="{{ url_for('index') }}">Image Transforms</a>
+            </div>
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li><a href="{{ url_for('index') }}">Home</a></li>     
+                    {% if current_user.is_anonymous %}
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                    <li><a href="{{ url_for('recover') }}">Recover Password</a></li>
+                    {% else %}
+                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                    <li><a href="{{ url_for('recover') }}">Change Password</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('register') }}">Register</a></li>
+                    <li><a href="{{ url_for('upload') }}">Upload from Files</a></li>
+                    <li><a href="{{ url_for('uploadurl') }}">Upload from URL</a></li>
+                    <li><a href="{{ url_for('gallery') }}">Gallery</a></li>
+                </ul>
+            </div>
         </div>
-        <hr>
+    </nav>
+    <div class="container">
         {% with messages = get_flashed_messages() %}
         {% if messages %}
-        <ul>
             {% for message in messages %}
-            <li>{{ message }}</li>
+            <div class="alert alert-info" role="alert">{{ message }}</div>
             {% endfor %}
-        </ul>
         {% endif %}
         {% endwith %}
-        {% block content %}{% endblock %}
-    </body>
-</html>
+    </div>
+{% endblock %}

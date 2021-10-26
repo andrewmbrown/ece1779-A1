@@ -58,8 +58,8 @@ def index():
     # render_template() invokes jinja2 substituting {{...}} blocks with corresponding values
     admin_info = [
         {
-            'author': {'username': 'the admin (root)'},
-            'body': 'Please click on Upload to upload and image, and Gallery to see your current images!'
+            'author': {'username': 'Admin (root) says:'},
+            'body': 'Please use the Navigation Bar above to utilize this web application'
         }
     ]
     return render_template('index.html', title='Home', adminmsgs=admin_info)

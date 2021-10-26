@@ -2,7 +2,7 @@
 
 {% block content %}
     <h1>Hi, {{ current_user.username }}!</h1>
-    <h1>Your id is: {{ current_user.id }}!</h1>
+    <h2>You are user number: {{ current_user.id }} registered on this application!</h2>
     {% for info in adminmsgs %}
     <div><p>{{ info.author.username }} says: <b>{{ info.body }}</b></p></div>
     {% endfor %}
