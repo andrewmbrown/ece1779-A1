@@ -49,7 +49,6 @@ def setup():
         print("Admin user account already exists")
     return mail
 
-# fix this later
 mail = setup()  # configure admin account and setup mail
 @app.route('/')
 @app.route('/index')  # use as register fxn as callbacks for certain events
@@ -87,12 +86,14 @@ def login():
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
 
+# Method to logout authenticated user
 @app.route('/logout')
 def logout():
     logout_user()
     flash("Successfully logged out")
     return redirect(url_for('index'))
 
+# method to register user who has administrator priveleges
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:  # only see anything if logged in
@@ -112,7 +113,7 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        # as a form of password recovery, send email containing it
+        # as a form of password recovery, send email containing it - THIS NEEDS CONFIGURING IF YOU USE IT IN PRODUCTION
         try:
             msg = Message('Account Details', sender = 'andrewm.brown@mail.utoronto.ca', recipients = [form.email.data])
             msg.body = f"Hello, {form.username.data}, here is your password in case you lose it: {form.password.data} You can also reset this password via the application"
@@ -124,7 +125,7 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
-
+# Recover method functions both as password reset and password change for users
 @app.route('/recover', methods=['GET', 'POST'])
 def recover():
     # function to reset users passwords using username and email
@@ -147,7 +148,7 @@ def recover():
         return redirect(url_for('index'))
     return render_template('recover.html', title='Recover Password', form=form)
 
-
+# Upload method for users 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if not current_user.is_authenticated:
@@ -179,9 +180,7 @@ def upload():
                 'spread': os.path.join(picture_path, 'spread')
             }
 
-            # unsure of this
-            # user_email = current_user.email
-            # user = User.query.filter_by(email=user_email).first()
+            
             pic_path = ImageLocation(location=picture_path, htmlpath=html_path, filename=filename, user_id=current_user.id)
 
             # save the image file itself on the local machine
@@ -230,7 +229,7 @@ def uploadurl():
             except:
                 flash('Image URL was improperly entered or not a viable image URL, please try another upload', category='danger')
                 return redirect(url_for('uploadurl'))
-            if size > 10000000:  # larger than 10MB
+            if size > 10000000:  # larger than 10MB, server side check
                 flash("File is too large! Please only upload images below 10MB in filesize")
                 return redirect(url_for('uploadurl'))
 
@@ -254,8 +253,6 @@ def uploadurl():
                 return redirect(url_for('uploadurl'))
             
 
-            # filename = secure_filename(form.picture.data.filename)
-            # filename_without_extension = (filename.split('.'))[0]
             img_folder_name = str(filename_without_extension+str(int(time.time())))
             username = str(current_user.username)
             cwd = os.getcwd()
@@ -274,9 +271,7 @@ def uploadurl():
                 'spread': os.path.join(picture_path, 'spread')
             }
 
-            # unsure of this
-            # user_email = current_user.email
-            # user = User.query.filter_by(email=user_email).first()
+        
             pic_path = ImageLocation(location=picture_path, htmlpath=html_path, filename=filename, user_id=current_user.id)
 
             # save the image file itself on the local machine
@@ -354,7 +349,6 @@ def image(imagefolder, imgname):
         'filename': filename
     }
     return render_template('image.html', title=imagefolder, pathcomp=path_components)
-    # return render_template('image.html', title=imgname, norm=normurl, blur=blururl, shade=shadeurl, spread=spreadurl)
 
 # Automatic testing points
 @app.route('/api/register', methods=['POST'])
@@ -493,15 +487,19 @@ def upload_test():
     # end of function if all is successful
     return json.dumps(msg_success)
 
+# Various error handling functions, each serving an individual purpose
+# handle error if file is too large, redirect to uplod
 @app.errorhandler(413)
 def too_large(e):
     flash("File is too large! Please only upload images below 10MB in filesize")
     return redirect(url_for('upload'))
 
+# handle if file not found error, 404
 @app.errorhandler(404)
 def not_found_error(e):
     return render_template('404.html'), 404
 
+# handle error if there is any database error, rollback db
 @app.errorhandler(500)
 def internal_error(e):
     db.session.rollback()
