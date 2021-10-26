@@ -6,6 +6,9 @@ app/__pycache__/__init__.cpython-38.pyc
 app/__pycache__/routes.cpython-38.pyc
 app/__pycache__/routes.cpython-38.pyc
 app/__pycache__/routes.cpython-38.pyc
+__pycache__/*.pyc
+__pycache__
+app/__pycache__/
 
 # Taken from microblog tutorial
 *.py[cod]
