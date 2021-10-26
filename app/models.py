@@ -11,6 +11,14 @@ from app import login
 # either delete the migrations folder or properly migrate and upgrade database
 
 class User(UserMixin, db.Model):
+    '''
+    Model for User table entry
+
+    id -> user ID 
+    username -> unique username
+    email -> unique email
+    password_hash -> stored hash of provided password
+    '''
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
@@ -35,6 +43,16 @@ def load_user(id):
 
 
 class ImageLocation(db.Model):
+    '''
+    Model for ImageLocation table entry
+
+    id -> image location ID 
+    location -> full path location of image (in /static/images/...)
+    htmlpath -> html safe path
+    filename -> true filename
+    user_id -> user associated to this image (user with this id will have this img
+        appear in their gallery)
+    '''
     id = db.Column(db.Integer, primary_key=True)
     # we do not store images in DB, we instead store the path to the image
     location = db.Column(db.String(2048), index=True)
