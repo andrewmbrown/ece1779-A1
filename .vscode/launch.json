@@ -1,0 +1,23 @@
+{
+    // this file allows you to debug flask apps using vscode
+    // settings will change based on your environment or libraries!
+    "name": "Python: Flask",
+    "type": "python",
+    "request": "launch",
+    "module": "flask",
+    "env": {
+        "FLASK_APP": "routes.py",
+        "FLASK_ENV": "development",
+        "FLASK_DEBUG": "0"
+    },
+    "args": [
+        "run",
+        "--no-debugger",
+        "--no-reload"
+    ],
+    "jinja": true,
+    "configurations": [
+    
+        
+    ]
+}

@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Sign In</h1>
-    <h3>If you need a new account, please contact the administrator</h3>
+
+<h1>Recover or Change Password</h1>
+    <h3>To recover or change password, please enter your username and email followed by new password</h3>
     <form action="" method="post" novalidate>
         {{ form.hidden_tag() }}
         <p>
@@ -13,14 +14,19 @@
             {% endfor %}
         </p>
         <p>
-            {{ form.password.label }}<br>
-            {{ form.password(size=32) }}<br>
-            {% for error in form.password.errors %}
+            {{ form.email.label }}<br>
+            {{ form.email(size=32) }}<br>
+            {% for email in form.email.errors %}
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
-        <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
+        <p>
+            {{ form.newpassword.label }}<br>
+            {{ form.newpassword(size=32) }}<br>
+            {% for newpassword in form.newpassword.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
         <p>{{ form.submit() }}</p>
     </form>
-    <p>Forgot your password? <a href="{{ url_for('recover') }}">Click to reset!</a></p>
 {% endblock %}

@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Hi, {{ user.username }}!</h1>
-    {% for post in posts %}
-    <div><p>{{ post.author.username }} says: <b>{{ post.body }}</b></p></div>
+    <h1>Hi, {{ current_user.username }}!</h1>
+    <h2>You are user number: {{ current_user.id }} registered on this application!</h2>
+    {% for info in adminmsgs %}
+    <div><p>{{ info.author.username }} says: <b>{{ info.body }}</b></p></div>
     {% endfor %}
 {% endblock %}

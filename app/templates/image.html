@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>{{ title }}</h1>
+    <p>Click on Gallery at the top to return to your gallery.</p>
+    <div><img src="{{ url_for('static', filename='images/'+pathcomp.username+'/'+pathcomp.dirname+'/normal/'+pathcomp.filename) }}"></div>
+    <div><img src="{{ url_for('static', filename='images/'+pathcomp.username+'/'+pathcomp.dirname+'/blur/'+pathcomp.filename) }}"></div>
+    <div><img src="{{ url_for('static', filename='images/'+pathcomp.username+'/'+pathcomp.dirname+'/shade/'+pathcomp.filename) }}"></div>
+    <div><img src="{{ url_for('static', filename='images/'+pathcomp.username+'/'+pathcomp.dirname+'/spread/'+pathcomp.filename) }}"></div>
+{% endblock content %}
