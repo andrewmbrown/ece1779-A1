@@ -12,9 +12,7 @@ File to create different types of form fillers for the web application
 # Login form specifies data input when logging into the site
 class LoginForm(FlaskForm):
     '''
-    LoginForm
-
-    this class is the login form for the flask application
+    LoginForm doc string test
     '''
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
