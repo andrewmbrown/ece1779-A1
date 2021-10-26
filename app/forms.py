@@ -9,10 +9,9 @@ from app.apputilities import *
 File to create different types of form fillers for the web application
 """
 
-# Login form specifies data input when logging into the site
 class LoginForm(FlaskForm):
     '''
-    LoginForm doc string test
+    Login form specifies data input when logging into the site
     '''
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
@@ -20,9 +19,11 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Sign In')
 
 
-# Registration form specifies data innput for registering new users,
-# Only accessed by admin
 class RegistrationForm(FlaskForm):
+    '''
+    Registration form specifies data innput for registering new users,
+    Only accessed by admin
+    '''
     username = StringField('Username', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
@@ -49,6 +50,9 @@ class RegistrationForm(FlaskForm):
             print(u.id, u.username)
 
 class RecoveryForm(FlaskForm):
+    '''
+    Used for password recovery
+    '''
     username = StringField('Username', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired()])
     newpassword = PasswordField('New Password', validators=[DataRequired()])
@@ -56,19 +60,25 @@ class RecoveryForm(FlaskForm):
 
 
 class PictureForm(FlaskForm):
+    '''
+    Used to upload a picture directly as a file
+    '''
     picture = FileField('Upload picture', validators=[FileRequired(), 
                                     FileAllowed(['jpg', 'jpeg', 'png'], "You can upload only JPG, JPEG and PNG") ])
     submit = SubmitField('Upload')
 
 class URLPictureForm(FlaskForm):
+    '''
+    Used to upload a picture via a URL
+    '''
     urlpicture = StringField('URL to Upload Picture', validators=[DataRequired()])
     submit = SubmitField('Upload')
 
     def validate_urlpicture(self, urlpicture):
         new_url = urlpicture.data
         if urlpicture.data[:8] != "https://" and urlpicture.data[:7] != "http://":
-            new_url = "https://" + urlpicture.data 
-        viable_image = check_img_url(new_url)
+            new_url = "https://" + urlpicture.data # ensures the URL starts with http:// or https://
+        viable_image = check_img_url(new_url) # check if URL actually points to image, fail otherwise
         viable_image_truth = viable_image[0]
         if not viable_image_truth:
             raise ValidationError("The image URL you entered was not viable: either it has a typo, is not a png, jpg, or jpeg, is not accessible for security reasons, or is not registered as one of these image types in its file header. Please try another URL.")
