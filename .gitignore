@@ -52,3 +52,6 @@ microblog.log*
 *.jpg
 *.jpeg
 *.png
+
+migrations
+__pycache__
