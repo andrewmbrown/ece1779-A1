@@ -17,6 +17,8 @@ from wand.image import Image
 from app.imagetransform import image_transform
 from app.apputilities import extension_dict, check_img_url
 
+import boto3 #a2 onward
+
 '''
 # This code is the driver/state of the app
 # each function defines the behaviour of a certain part of the app
