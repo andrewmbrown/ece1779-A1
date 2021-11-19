@@ -28,8 +28,8 @@ import boto3 #a2 onward
 '''
 
 s3_client = boto3.client('s3', 
-    aws_access_key_id="AKIAWEUOCUGWSRRCFGDY", 
-    aws_secret_access_key="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", 
+    aws_access_key_id="", 
+    aws_secret_access_key="", 
     region_name="us-east-1")
 bucket = 'ece1779a2g8'
 bucket_url_base = 'https://ece1779a2g8.s3.amazonaws.com/'
