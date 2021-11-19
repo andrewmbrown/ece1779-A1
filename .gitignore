@@ -58,3 +58,6 @@ microblog.log*
 
 migrations
 __pycache__
+app/__pycache__/forms.cpython-38.pyc
+app/__pycache__/routes.cpython-38.pyc
+app/__pycache__/forms.cpython-38.pyc

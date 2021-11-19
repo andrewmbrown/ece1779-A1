@@ -56,7 +56,8 @@ class ImageLocation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     # we do not store images in DB, we instead store the path to the image
     location = db.Column(db.String(2048), index=True)
-    htmlpath = db.Column(db.String(2048), index=True)
+    httppath = db.Column(db.String(2048), index=True)
+    s3path = db.Column(db.String(2048), index=True)
     filename = db.Column(db.String(2048), index=True)
     # user_id is foreign key
     user_id = db.Column(db.Integer)
