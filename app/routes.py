@@ -27,9 +27,12 @@ import boto3 #a2 onward
 @app.route('/')  # decorator, modifies the function that follows it
 '''
 
+AWS_ACC_KEY = "dummy"
+AWS_SEC_KEY = "dummy"
+
 s3_client = boto3.client('s3', 
-    aws_access_key_id="", 
-    aws_secret_access_key="", 
+    aws_access_key_id=AWS_ACC_KEY, 
+    aws_secret_access_key=AWS_SEC_KEY, 
     region_name="us-east-1")
 bucket = 'ece1779a2g8'
 bucket_url_base = 'https://ece1779a2g8.s3.amazonaws.com/'
