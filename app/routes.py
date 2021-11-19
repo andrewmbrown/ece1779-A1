@@ -34,6 +34,8 @@ s3_client = boto3.client('s3',
 bucket = 'ece1779a2g8'
 bucket_url_base = 'https://ece1779a2g8.s3.amazonaws.com/'
 
+rds_db_base = 'test'
+
 
 # To ensure we always have an admin account we attempt to make it every time
 # in case there are no accounts
