@@ -512,8 +512,11 @@ def upload_test():
             user_image_path = os.path.join(cwd, 'app', 'static', 'images', username) # USER GALLERY FOLDER
             if not os.path.exists(user_image_path):
                 os.mkdir(user_image_path)
-            picture_path = os.path.join(cwd, 'app', 'static', 'images', username, img_folder_name) # FOLDER for SINGLE IMAGE
+            picture_path = os.path.join(cwd, 'app', 'static', 'images', username, img_folder_name)
             html_path = os.path.join('static', 'images', username, img_folder_name)
+            html_path_old = os.path.join('static', 'images', username, img_folder_name)
+            http_path = bucket_url_base + "static/images/" + username + "/" + img_folder_name + "/"
+            s3_path = "/".join(['static','images', username, img_folder_name])
 
             path_dict = {
                 'rootdir': picture_path,
@@ -524,7 +527,17 @@ def upload_test():
                 'spread': os.path.join(picture_path, 'spread')
             }
 
-            pic_path = ImageLocation(location=picture_path, htmlpath=html_path, filename=filename, user_id=current_user.id)
+            s3_dict = {
+                'rootdir': s3_path,
+                'normal': "/".join([s3_path, 'normal']),
+                'thumbnail': "/".join([s3_path, 'thumbnail']),
+                'blur': "/".join([s3_path, 'blur']),
+                'shade': "/".join([s3_path, 'shade']),
+                'spread': "/".join([s3_path, 'spread'])
+            }
+        
+            # pic_path = ImageLocation(location=picture_path, httppath=html_path, s3path=s3_path, filename=filename, user_id=current_user.id)
+            pic_path = ImageLocation(location=picture_path, httppath=http_path, s3path=s3_path, filename=filename, user_id=current_user.id)
 
             # save the image file itself on the local machine
             os.mkdir(picture_path)
@@ -534,18 +547,26 @@ def upload_test():
             os.mkdir(path_dict['shade'])
             os.mkdir(path_dict['spread'])
 
+            # form.picture.data.save(main_path)
+            shutil.copy(filename, path_dict['normal'])
+
             main_path = os.path.join(path_dict['normal'], filename)
             thumbnail_path = os.path.join(path_dict['thumbnail'], filename)
             blur_path = os.path.join(path_dict['blur'], filename)
             shade_path = os.path.join(path_dict['shade'], filename)
             spread_path = os.path.join(path_dict['spread'], filename)
 
-            # requests library gives different format of file, so it becomes file.save not file.data.save
-            file.save(main_path)
+            main_path_s3 = "/".join([s3_dict['normal'], filename])
+            thumbnail_path_s3 = "/".join([s3_dict['thumbnail'], filename])
+            blur_path_s3 = "/".join([s3_dict['blur'], filename])
+            shade_path_s3 = "/".join([s3_dict['shade'], filename])
+            spread_path_s3 = "/".join([s3_dict['spread'], filename])
+
             blur_test = image_transform(main_path, blur_path, 0) # add errors if didn't work
             shade_test = image_transform(main_path, shade_path, 1)
             spread_test = image_transform(main_path, spread_path, 2)
             thumbnail_test = image_transform(main_path, thumbnail_path, 3)
+
 
             if blur_test < 0 or shade_test < 0 or spread_test < 0 or thumbnail_test < 0:
                 msg_failure['error']['message'] = 'Image could not be transformed! Please try again or another'
@@ -556,9 +577,21 @@ def upload_test():
                 msg_success['payload']['blur_size'] = os.path.getsize(blur_path)
                 msg_success['payload']['shade_size'] = os.path.getsize(shade_path)
                 msg_success['payload']['spread_size'] = os.path.getsize(spread_path)
+
+            s3_client.upload_file(main_path, bucket, main_path_s3)
+            s3_client.upload_file(blur_path, bucket, blur_path_s3)
+            s3_client.upload_file(shade_path, bucket, shade_path_s3)
+            s3_client.upload_file(spread_path, bucket, spread_path_s3)
+            s3_client.upload_file(thumbnail_path, bucket, thumbnail_path_s3)
+
             # add picture path to the database
             db.session.add(pic_path)
             db.session.commit()
+
+            # remove the temp file
+            os.remove(filename)
+            shutil.rmtree(user_image_path)
+
         except:
             msg_failure['error']['message'] = 'unable to upload file'
             return json.dumps(msg_failure)
