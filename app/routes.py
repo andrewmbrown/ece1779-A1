@@ -17,6 +17,8 @@ from wand.image import Image
 from app.imagetransform import image_transform
 from app.apputilities import extension_dict, check_img_url
 
+from access import access_keys
+
 import boto3 #a2 onward
 #import s3 stuff into here
 
@@ -27,15 +29,15 @@ import boto3 #a2 onward
 @app.route('/')  # decorator, modifies the function that follows it
 '''
 
-AWS_ACC_KEY = "dummy"
-AWS_SEC_KEY = "dummy"
+AWS_ACC_KEY = access_keys["AWS_ACC_KEY"]
+AWS_SEC_KEY = access_keys["AWS_SECRET_KEY"]
 
 s3_client = boto3.client('s3', 
     aws_access_key_id=AWS_ACC_KEY, 
     aws_secret_access_key=AWS_SEC_KEY, 
     region_name="us-east-1")
-bucket = 'ece1779a2g8'
-bucket_url_base = 'https://ece1779a2g8.s3.amazonaws.com/'
+bucket = 'ece1779a2g82'
+bucket_url_base = 'https://ece1779a2g82.s3.amazonaws.com/'
 
 rds_db_base = 'test'
 
