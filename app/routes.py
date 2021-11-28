@@ -16,6 +16,8 @@ from app.models import User, ImageLocation
 from wand.image import Image
 from app.imagetransform import image_transform
 from app.apputilities import extension_dict, check_img_url
+from datetime import datetime
+from apscheduler.schedulers.background import BackgroundScheduler  # for posting http req data
 
 from access import access_keys
 
@@ -36,10 +38,55 @@ s3_client = boto3.client('s3',
     aws_access_key_id=AWS_ACC_KEY, 
     aws_secret_access_key=AWS_SEC_KEY, 
     region_name="us-east-1")
+cloudwatch = boto3.client('cloudwatch',
+        aws_access_key_id=AWS_ACC_KEY, 
+        aws_secret_access_key=AWS_SEC_KEY, 
+        region_name="us-east-1")
+ec2 = boto3.client('ec2',
+        aws_access_key_id=AWS_ACC_KEY, 
+        aws_secret_access_key=AWS_SEC_KEY, 
+        region_name="us-east-1")
+count = 0  # cloudwatch and count to publish http_req to be displayed on manager app
 bucket = 'ece1779a2g82'
 bucket_url_base = 'https://ece1779a2g82.s3.amazonaws.com/'
 
 rds_db_base = 'test'
+
+# Defining a before_request to increment count each time we see a request
+@app.before_request
+def before_request():
+    global count
+    count += 1
+    return
+
+# APScheduler that pushes the HTTP request count to cloudwatch every minute, and resets count
+def publish_metrics():
+    global count
+    global instance_id
+    ## API to publish metrics
+    response = cloudwatch.put_metric_data(
+        Namespace='HTTP_Requests',
+        MetricData=[
+            {
+                'MetricName': 'HTTP_Requests',
+                'Dimensions':[
+                    {
+                    'Name': 'Instance_ID',
+                    'Value': instance_id
+                    },
+                ],
+                'Timestamp': datetime.utcnow(),
+                'Unit': 'None',
+                'Value': count
+            },
+        ]   
+    )
+    print('Pushing metrics now. Count and response: ', count, instance_id, response)
+    count = 0
+    
+scheduler = BackgroundScheduler()
+job = scheduler.add_job(publish_metrics, 'interval', minutes=1)
+scheduler.start()
 
 
 # To ensure we always have an admin account we attempt to make it every time
