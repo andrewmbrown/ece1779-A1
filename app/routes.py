@@ -52,19 +52,6 @@ bucket_url_base = 'https://ece1779a2g82.s3.amazonaws.com/'
 
 rds_db_base = 'test'
 
-#Get current instance ID
-@app.get_instance_id
-def get_instance_id():
-    global instance_id
-    try:
-        # ip address gives the meta-data for the current ec2 machine
-        # this is assumed this code is built ON the ec2, if not its a local machine
-        response = requests.get('http://169.254.169.254/latest/meta-data/instance-id')
-        instance_id = response.text
-    except:
-        instance_id = 'localhost'
-    return
-
 # Defining a before_request to increment count each time we see a request
 @app.before_request
 def before_request():
@@ -75,7 +62,14 @@ def before_request():
 # APScheduler that pushes the HTTP request count to cloudwatch every minute, and resets count
 def publish_metrics():
     global count
-    global instance_id
+    try:
+        # ip address gives the meta-data for the current ec2 machine
+        # this is assumed this code is built ON the ec2, if not its a local machine
+        response = requests.get('http://169.254.169.254/latest/meta-data/instance-id')
+        instance_id = response.text
+    except:
+        instance_id = 'localhost'
+
     ## API to publish metrics
     response = cloudwatch.put_metric_data(
         Namespace='HTTP_Requests',
