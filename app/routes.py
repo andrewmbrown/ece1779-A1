@@ -67,6 +67,9 @@ bucket_url_base = 'https://ece1779a3g81.s3.amazonaws.com/'
 count = 0
 
 aws = AwsSession()
+bucket = aws.bucket 
+bucket_url_base = aws.bucket_url_base
+s3_client = aws.s3 
 
 # Defining a before_request to increment count each time we see a request
 

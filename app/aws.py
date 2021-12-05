@@ -27,7 +27,7 @@ class AwsSession:
         self.ddb = session.resource('dynamodb')
         
         self.user_table = self.ddb.Table(self.user_table_name)
-        # self.image_location_table = self.ddb.Table(self.image_table_name)
+        self.image_table = self.ddb.Table(self.image_table_name)
 
         self.bucket = 'ece1779a3g81'
         self.bucket_url_base = 'https://ece1779a3g81.s3.amazonaws.com/'
