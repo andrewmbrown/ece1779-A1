@@ -42,13 +42,13 @@ class RegistrationForm(FlaskForm):
         if user is not None:
             raise ValidationError('Please use a different username.')
         '''
-        user = aws.DDB_get_user(username)
+        user = aws.DDB_get_user(username.data)
         if user != -1:
             raise ValidationError('Please use a different username.')
 
     # check to see if email is valid and is unique
     def validate_email(self, email):
-        user = aws.DDB_get_user_by_email(email)
+        user = aws.DDB_get_user_by_email(email.data)
         if user != -1:
             raise ValidationError('Please use a different email address.')
 

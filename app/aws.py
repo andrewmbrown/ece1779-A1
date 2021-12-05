@@ -1,5 +1,5 @@
 import boto3 
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Key, Attr
 from app.models import User 
 
 from access import access_keys
@@ -37,7 +37,7 @@ class AwsSession:
         response = self.user_table.query(
             KeyConditionExpression=Key('username').eq(username)
         )
-        if len(response) < 1:
+        if len(response["Items"]) < 1:
             # no users found with that username
             return -1
         raw_user = response["Items"][0]
@@ -64,7 +64,7 @@ class AwsSession:
         response = self.user_table.scan(
             FilterExpression=Attr('email').eq(email)
         )
-        if len(response) < 1:
+        if len(response["Items"]) < 1:
             return -1
         raw_user = response["Items"][0]
         user = User(
@@ -76,10 +76,10 @@ class AwsSession:
 
     def DDB_get_all_users(self):
         response = self.user_table.scan()
-        if len(response) < 1:
+        if len(response["Items"]) < 1:
             return -1
         user_list = []
-        for user_json in response:
+        for user_json in response["Items"]:
             printing_user = User(
                 username=user_json["username"], 
                 email=user_json["email"],
