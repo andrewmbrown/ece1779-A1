@@ -82,6 +82,7 @@ def load_user(username):
     else:
         raw_user = user_list[0]
         user.id = raw_user["username"]
+        user.username = raw_user["username"]
         user.email = raw_user["email"]
         user.password_hash = raw_user["password_hash"]
         return user 
