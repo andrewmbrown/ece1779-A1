@@ -23,6 +23,8 @@ from access import access_keys
 
 import boto3 #a3 onward!! 
 #import s3 stuff into here
+from boto3.dynamodb.conditions import Key
+from werkzeug.security import check_password_hash, generate_password_hash
 
 '''
 # This code is the driver/state of the app
@@ -33,6 +35,15 @@ import boto3 #a3 onward!!
 
 AWS_ACC_KEY = access_keys["AWS_ACC_KEY"]
 AWS_SEC_KEY = access_keys["AWS_SECRET_KEY"]
+
+session = boto3.Session(
+    aws_access_key_id=AWS_ACC_KEY,
+    aws_secret_access_key=AWS_SEC_KEY,
+    region_name="us-east-1"
+)
+
+dynamodb = session.resource('dynamodb')
+user_table = dynamodb.Table('user-test')
 
 s3_client = boto3.client('s3', 
     aws_access_key_id=AWS_ACC_KEY, 
@@ -49,8 +60,6 @@ ec2 = boto3.client('ec2',
 count = 0  # cloudwatch and count to publish http_req to be displayed on manager app
 bucket = 'ece1779a3g81'
 bucket_url_base = 'https://ece1779a3g81.s3.amazonaws.com/'
-
-rds_db_base = 'test'
 
 # Defining a before_request to increment count each time we see a request
 @app.before_request
@@ -111,6 +120,7 @@ def setup():
     app.config['MAIL_USE_SSL'] = True
     app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # <10MB server side validation
     mail = Mail(app)
+    '''
     try:
         admin = User(username='root', email='root@email.com')
         admin.set_password('password')
@@ -119,6 +129,7 @@ def setup():
         print("added admin, username: root, password: password")
     except:
         print("Admin user account already exists")
+    '''
     return mail
 
 mail = setup()  # configure admin account and setup mail
@@ -144,7 +155,25 @@ def login():
     # form object of a login form class
     form = LoginForm()
     if form.validate_on_submit():  # method of this class to validate form
-        user = User.query.filter_by(username=form.username.data).first()
+        # user = User.query.filter_by(username=form.username.data).first() # TODO: replace this with the dynamodb query
+        login_username = form.username.data
+        response = user_table.query(
+            KeyConditionExpression=Key('username').eq(form.username.data)
+        )
+        if len(response) < 1:
+            # no users found with that username
+            flash('Invalid username or password')
+            return redirect(url_for('login'))
+
+        raw_user = response["Items"][0]
+        
+        user = User(
+            username=raw_user["username"],
+            email=raw_user["email"],
+            password_hash=raw_user["password_hash"]
+        )
+
+
         if user is None or not user.check_password(form.password.data):
             # check to see validity for username, if not valid try againn
             flash('Invalid username or password')
