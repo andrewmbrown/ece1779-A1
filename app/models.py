@@ -1,4 +1,4 @@
-# from app import db 
+from app import db 
 # hashing passwords
 from werkzeug.security import check_password_hash, generate_password_hash
 # authenticating users, checking active status, anonyimity, id
@@ -9,6 +9,8 @@ from app import login
 import boto3 
 from boto3.dynamodb.conditions import Key
 from access import access_keys
+AWS_ACC_KEY = access_keys["AWS_ACC_KEY"]
+AWS_SEC_KEY = access_keys["AWS_SECRET_KEY"]
 
 session = boto3.Session(
     aws_access_key_id=AWS_ACC_KEY,
@@ -36,6 +38,7 @@ class User(UserMixin):
     password_hash -> stored hash of provided password
     '''
     def __init__ (self, username, email, password_hash):
+        self.id = username
         self.username = username
         self.email = email
         self.password_hash = password_hash
@@ -78,7 +81,7 @@ def load_user(username):
         return user 
     else:
         raw_user = user_list[0]
-        user.username = raw_user["username"]
+        user.id = raw_user["username"]
         user.email = raw_user["email"]
         user.password_hash = raw_user["password_hash"]
         return user 

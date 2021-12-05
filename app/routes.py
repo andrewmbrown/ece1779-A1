@@ -166,7 +166,7 @@ def login():
             return redirect(url_for('login'))
 
         raw_user = response["Items"][0]
-        
+
         user = User(
             username=raw_user["username"],
             email=raw_user["email"],
@@ -202,7 +202,7 @@ def register():
     else:
         flash("Please login, only administrators can register accounts")
         return redirect(url_for('index'))
-    if int(current_user.id) == 1 or str(current_user.username) == 'root':  # first account or root name
+    if str(current_user.username) == 'root':  # first account or root name
         flash("You have admin permissions")
     else:
         flash("Sorry, only administrators can register accounts")
