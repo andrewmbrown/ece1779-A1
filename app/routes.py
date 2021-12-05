@@ -248,11 +248,12 @@ def recover():
     # function to reset users passwords using username and email
     form = RecoveryForm()
     if form.validate_on_submit():
+        '''
         try:
             # First find the account
             user_name = str(form.username.data)  # enter username for security theatre
             user_email = str(form.email.data)
-            user = User.query.filter_by(email=user_email).first()
+            user = aws.DDB_get_user_by_email(user_email)
             
             # set new password and commit it to db
             user.set_password(form.newpassword.data)
@@ -263,6 +264,18 @@ def recover():
         except:
             flash("Unable to find account, please contact administrator")
         return redirect(url_for('index'))
+        '''
+        user_name = str(form.username.data)  # enter username for security theatre
+        user_email = str(form.email.data)
+        grabbed_user = aws.DDB_get_user_by_email(user_email)
+        if grabbed_user == -1:
+            flash("Unable to find account, please contact administrator")
+            return redirect(url_for('index'))
+        else:
+            username = grabbed_user.username
+            new_pass = str(form.newpassword.data)
+            aws.DDB_update_password(username, new_pass)
+            flash("Successfully changed password, please login!")
     return render_template('recover.html', title='Recover Password', form=form)
 
 # Upload method for users 

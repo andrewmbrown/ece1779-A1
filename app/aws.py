@@ -88,6 +88,19 @@ class AwsSession:
             user_list.append(printing_user)
         return user_list
 
+    def DDB_update_password(self, username, new_password):
+        response = self.user_table.update_item(
+            Key={
+                'username': username,
+            },
+            UpdateExpression="set password_hash=:r",
+            ExpressionAttributeValues={
+                ':r': generate_password_hash(new_password)
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+        return response
+
     def DDB_upload_image(self, image_json):
         put_response = self.image_table.put_item(Item=image_json)
         return put_response 
