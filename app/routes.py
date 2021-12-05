@@ -219,10 +219,13 @@ def register():
         return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
+        response = aws.DDB_add_user(username=form.username.data, email=form.email.data, password=form.password.data)
+        '''
         user = User(id=form.username.data, username=form.username.data, email=form.email.data)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
+        '''
 
         # as a form of password recovery, send email containing it - THIS NEEDS CONFIGURING IF YOU USE IT IN PRODUCTION
         try:

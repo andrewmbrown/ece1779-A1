@@ -5,6 +5,10 @@ from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
 from app.models import User
 from app.apputilities import *
 
+from app.aws import AwsSession 
+
+aws = AwsSession()
+
 """
 File to create different types of form fillers for the web application
 """
@@ -33,21 +37,26 @@ class RegistrationForm(FlaskForm):
 
     # check to see if username is valid and is unique
     def validate_username(self, username):
+        '''
         user = User.query.filter_by(username=username.data).first()
         if user is not None:
+            raise ValidationError('Please use a different username.')
+        '''
+        user = aws.DDB_get_user(username)
+        if user != -1:
             raise ValidationError('Please use a different username.')
 
     # check to see if email is valid and is unique
     def validate_email(self, email):
-        user = User.query.filter_by(email=email.data).first()
-        if user is not None:
+        user = aws.DDB_get_user_by_email(email)
+        if user != -1:
             raise ValidationError('Please use a different email address.')
 
     # a command the admin can run to see all userids and usernames
     def print_users(self):
-        users = User.query.all()
+        users = aws.DDB_get_all_users()
         for u in users:
-            print(u.id, u.username)
+            print(u.username, u.email)
 
 class RecoveryForm(FlaskForm):
     '''

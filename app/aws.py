@@ -4,6 +4,8 @@ from app.models import User
 
 from access import access_keys
 
+from werkzeug.security import check_password_hash, generate_password_hash
+
 class AwsSession:
 
     def __init__(self):
@@ -40,6 +42,7 @@ class AwsSession:
             return -1
         raw_user = response["Items"][0]
         user = User(
+                id=raw_user["username"],
                 username=raw_user["username"],
                 email=raw_user["email"],
                 password_hash=raw_user["password_hash"]
@@ -47,4 +50,43 @@ class AwsSession:
         return user
 
     def DDB_add_user(self, username, email, password):
-        return
+        password_hash = generate_password_hash(password)
+
+        new_user = {
+            'username': username,
+            'email': email,
+            'password_hash': password_hash
+        }
+
+        put_response = self.user_table.put_item(Item=new_user)
+        return put_response
+
+    def DDB_get_user_by_email(self, email):
+        response = self.user_table.scan(
+            FilterExpression=Attr('email').eq(email)
+        )
+        if len(response) < 1:
+            return -1
+        raw_user = response["Items"][0]
+        user = User(
+                id=raw_user["username"],
+                username=raw_user["username"],
+                email=raw_user["email"],
+                password_hash=raw_user["password_hash"]
+            )
+        return user
+
+    def DDB_get_all_users(self):
+        response = self.user_table.scan()
+        if len(response) < 1:
+            return -1
+        user_list = []
+        for user_json in response:
+            printing_user = User(
+                id=user_json["username"], 
+                username=user_json["username"], 
+                email=user_json["email"],
+                password_hash=user_json["password_hash"]
+            )
+            user_list.append(printing_user)
+        return user_list
