@@ -21,7 +21,7 @@ from apscheduler.schedulers.background import BackgroundScheduler  # for posting
 
 from access import access_keys
 
-import boto3 #a2 onward
+import boto3 #a3 onward!! 
 #import s3 stuff into here
 
 '''
