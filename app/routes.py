@@ -26,13 +26,15 @@ import boto3 #a3 onward!!
 from boto3.dynamodb.conditions import Key
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from app.aws import AwsSession 
+
 '''
 # This code is the driver/state of the app
 # each function defines the behaviour of a certain part of the app
 # performs logical functions then renders html display 
 @app.route('/')  # decorator, modifies the function that follows it
 '''
-
+'''
 AWS_ACC_KEY = access_keys["AWS_ACC_KEY"]
 AWS_SEC_KEY = access_keys["AWS_SECRET_KEY"]
 
@@ -60,8 +62,14 @@ ec2 = boto3.client('ec2',
 count = 0  # cloudwatch and count to publish http_req to be displayed on manager app
 bucket = 'ece1779a3g81'
 bucket_url_base = 'https://ece1779a3g81.s3.amazonaws.com/'
+'''
+
+count = 0
+
+aws = AwsSession()
 
 # Defining a before_request to increment count each time we see a request
+
 @app.before_request
 def before_request():
     global count
@@ -156,7 +164,10 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():  # method of this class to validate form
         # user = User.query.filter_by(username=form.username.data).first() # TODO: replace this with the dynamodb query
+
         login_username = form.username.data
+        print(login_username)
+        '''
         response = user_table.query(
             KeyConditionExpression=Key('username').eq(form.username.data)
         )
@@ -166,13 +177,12 @@ def login():
             return redirect(url_for('login'))
 
         raw_user = response["Items"][0]
+        '''
 
-        user = User(
-            username=raw_user["username"],
-            email=raw_user["email"],
-            password_hash=raw_user["password_hash"]
-        )
-
+        user = aws.DDB_get_user(login_username)
+        if user == -1:
+            flash('Invalid username or password')
+            return redirect(url_for('login'))
 
         if user is None or not user.check_password(form.password.data):
             # check to see validity for username, if not valid try againn
@@ -209,7 +219,7 @@ def register():
         return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
+        user = User(id=form.username.data, username=form.username.data, email=form.email.data)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
