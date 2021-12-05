@@ -87,3 +87,13 @@ class AwsSession:
             )
             user_list.append(printing_user)
         return user_list
+
+    def DDB_upload_image(self, image_json):
+        put_response = self.image_table.put_item(Item=image_json)
+        return put_response 
+
+    def DDB_get_images_by_user(self, username):
+        response = self.image_table.query(
+            KeyConditionExpression=Key("username").eq(username)
+        )
+        return response["Items"]

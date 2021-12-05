@@ -307,7 +307,16 @@ def upload():
 
             
             # pic_path = ImageLocation(location=picture_path, htmlpath=html_path, filename=filename, user_id=current_user.id)
-            pic_path = ImageLocation(location=picture_path, httppath=http_path, s3path=s3_path, filename=filename, user_id=current_user.id)
+            # pic_path = ImageLocation(location=picture_path, httppath=http_path, s3path=s3_path, filename=filename, user_id=current_user.id)
+
+            pic_path = {
+                "username": current_user.id,
+                "filename_currtime": img_folder_name, #img_folder_name 
+                "filename": filename,
+                "location": picture_path,
+                "httppath": http_path,
+                "s3path": s3_path
+            }
 
             # save the image file itself on the local machine
             os.mkdir(picture_path)
@@ -344,8 +353,12 @@ def upload():
             shutil.rmtree(user_image_path)
 
             # add picture path to the database
+            '''
             db.session.add(pic_path)
             db.session.commit()
+            '''
+
+            aws.DDB_upload_image(pic_path)
 
     return render_template('upload.html', title=title, form=form)
 
@@ -424,7 +437,16 @@ def uploadurl():
             }
         
             # pic_path = ImageLocation(location=picture_path, httppath=html_path, s3path=s3_path, filename=filename, user_id=current_user.id)
-            pic_path = ImageLocation(location=picture_path, httppath=http_path, s3path=s3_path, filename=filename, user_id=current_user.id)
+            # pic_path = ImageLocation(location=picture_path, httppath=http_path, s3path=s3_path, filename=filename, user_id=current_user.id)
+
+            pic_path = {
+                "username": current_user.id,
+                "filename_currtime": img_folder_name, #img_folder_name 
+                "filename": filename,
+                "location": picture_path,
+                "httppath": http_path,
+                "s3path": s3_path
+            }
 
             # save the image file itself on the local machine
             os.mkdir(picture_path)
@@ -465,8 +487,11 @@ def uploadurl():
             s3_client.upload_file(thumbnail_path, bucket, thumbnail_path_s3)
 
             # add picture path to the database
+            '''
             db.session.add(pic_path)
             db.session.commit()
+            '''
+            aws.DDB_upload_image(pic_path)
 
             # remove the temp file
             os.remove(filename)
@@ -484,7 +509,9 @@ def gallery():
         flash('Please login to view your gallery', category='danger')
         return redirect(url_for('login'))
     title = "{}'s Image Gallery".format(str(current_user.username))
-    image_path_rows = ImageLocation.query.filter_by(user_id=current_user.id).all()
+    # image_path_rows = ImageLocation.query.filter_by(user_id=current_user.id).all()
+    image_path_rows = aws.DDB_get_images_by_user(current_user.id)
+    
     # url_friendly_filename = str(img.filename).replace(".", "_")
     '''
     image_paths = [{
@@ -498,6 +525,8 @@ def gallery():
         'shade': os.path.join(str(img.htmlpath), 'shade', str(img.filename)),
         'spread': os.path.join(str(img.htmlpath), 'spread', str(img.filename))} for img in image_path_rows]
     '''
+
+    '''
     image_paths = [{
         'filename': str(img.filename),
         'filename_url': str(str(img.filename).replace(".", "$")),
@@ -505,6 +534,16 @@ def gallery():
         'root': str(img.s3path),
         'thumbnail': str(str(img.httppath) + "thumbnail/" + str(img.filename))
     } for img in image_path_rows]
+    '''
+
+    image_paths = [{
+        'filename': str(img['filename']),
+        'filename_url': str(str(img['filename']).replace(".", "$")),
+        'dirname': str(os.path.basename(os.path.normpath(str(img['s3path'])))),
+        'root': str(img['s3path']),
+        'thumbnail': str(str(img['httppath']) + "thumbnail/" + str(img['filename']))
+    } for img in image_path_rows]
+
     # image_paths = [{'thumbnail': "/static/images/sample.jpg"}, {'thumbnail': "/static/images/testimg.png"}]
     # flash(str(image_paths))
     # print("image paths")
