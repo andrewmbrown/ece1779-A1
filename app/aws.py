@@ -42,7 +42,6 @@ class AwsSession:
             return -1
         raw_user = response["Items"][0]
         user = User(
-                id=raw_user["username"],
                 username=raw_user["username"],
                 email=raw_user["email"],
                 password_hash=raw_user["password_hash"]
@@ -69,7 +68,6 @@ class AwsSession:
             return -1
         raw_user = response["Items"][0]
         user = User(
-                id=raw_user["username"],
                 username=raw_user["username"],
                 email=raw_user["email"],
                 password_hash=raw_user["password_hash"]
@@ -83,7 +81,6 @@ class AwsSession:
         user_list = []
         for user_json in response:
             printing_user = User(
-                id=user_json["username"], 
                 username=user_json["username"], 
                 email=user_json["email"],
                 password_hash=user_json["password_hash"]
