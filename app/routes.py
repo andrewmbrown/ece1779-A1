@@ -17,7 +17,7 @@ from wand.image import Image
 from app.imagetransform import image_transform
 from app.apputilities import extension_dict, check_img_url
 from datetime import datetime
-from apscheduler.schedulers.background import BackgroundScheduler  # for posting http req data
+# from apscheduler.schedulers.background import BackgroundScheduler  # for posting http req data
 
 from access import access_keys
 
@@ -47,8 +47,8 @@ ec2 = boto3.client('ec2',
         aws_secret_access_key=AWS_SEC_KEY, 
         region_name="us-east-1")
 count = 0  # cloudwatch and count to publish http_req to be displayed on manager app
-bucket = 'ece1779a2g82'
-bucket_url_base = 'https://ece1779a2g82.s3.amazonaws.com/'
+bucket = 'ece1779a3g81'
+bucket_url_base = 'https://ece1779a3g81.s3.amazonaws.com/'
 
 rds_db_base = 'test'
 
@@ -59,6 +59,7 @@ def before_request():
     count += 1
     return
 
+'''
 # APScheduler that pushes the HTTP request count to cloudwatch every minute, and resets count
 def publish_metrics():
     global count
@@ -94,7 +95,7 @@ def publish_metrics():
 scheduler = BackgroundScheduler()
 job = scheduler.add_job(publish_metrics, 'interval', minutes=1)
 scheduler.start()
-
+'''
 
 # To ensure we always have an admin account we attempt to make it every time
 # in case there are no accounts
